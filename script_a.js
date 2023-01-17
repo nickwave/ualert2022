@@ -18,14 +18,14 @@ function syncSettingsValues() {
   orangePolygonLayer.setVisible(isAlertsActive);
   yellowPolygonLayer.setVisible(isAlertsActive);
   greyPolygonLayer.setVisible(isAlertsActive);
-  dayLongPolygonLayer.setVisible(isAlertsActive);
+  dayLongPolygonLayer.setVisible(isDayLongAlertsActive);
   explosionPolygonLayer.setVisible(isExplosionsActive);
   dangerPolygonLayer.setVisible(isDangersActive);
   redMarkerLayer.setVisible(isAlertsActive);
   orangeMarkerLayer.setVisible(isAlertsActive);
   yellowMarkerLayer.setVisible(isAlertsActive);
   greyMarkerLayer.setVisible(isAlertsActive);
-  dayLongMarkerLayer.setVisible(isAlertsActive);
+  dayLongMarkerLayer.setVisible(isDayLongAlertsActive);
   dangerMarkerLayer.setVisible(isDangersActive);
   explosionMarkerLayer.setVisible(isExplosionsActive);
 }
