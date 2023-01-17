@@ -4,7 +4,7 @@ let isActiveDarkMode = false;
 let isAlertsActive = true;
 let isDangersActive = false;
 let isExplosionsActive = false;
-let IsDayLongAlertsActive = false;
+let isDayLongAlertsActive = false;
 
 function toggleIsPanelToggled() {
   isPanelToggled = !isPanelToggled;

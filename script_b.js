@@ -1,4 +1,4 @@
-function buildAlertComponent(event) {
+function buildAlertComponent(event, isDayLongEvent) {
   const alertComponent = document.createElement("div");
   const alertComponentClassList = [
     "event_item",
@@ -8,7 +8,12 @@ function buildAlertComponent(event) {
   if (isActiveDarkMode) alertComponentClassList.push("dark_event_item");
   switch(event.event) {
     case "alert": {
-      if(!isAlertsActive) alertComponentClassList.push("hidden"); break;
+      if (!isAlertsActive ||
+          (event.color == "grey" && isDayLongEvent && !isDayLongAlertsActive)
+      ) {
+        alertComponentClassList.push("hidden");
+      }
+      break;
     }
     case "danger": {
       if(!isDangersActive) alertComponentClassList.push("hidden"); break;
@@ -112,7 +117,7 @@ function alertsHandler(event) {
 
     const isDayLongEvent = ((new Date - new Date(event.date)) / oneDay) > 1;
 
-    alertsComponents.push(buildAlertComponent(event));
+    alertsComponents.push(buildAlertComponent(event, isDayLongEvent));
     if (polygonsContains(event.place)) {
       const polygon = Array.from(polygons[event.place]);
       processHolePolygons(event.place, polygon, events);
