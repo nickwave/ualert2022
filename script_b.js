@@ -107,10 +107,11 @@ function alertsHandler(event) {
   const explosionFeatureList = [];
 
   for (let i in events) {
+    const event = events[i];
     const oneDay = 1000 * 60 * 60 * 24; // Milliseconds in one day
+
     const isDayLongEvent = ((new Date - new Date(event.date)) / oneDay) > 1;
 
-    const event = events[i];
     alertsComponents.push(buildAlertComponent(event));
     if (polygonsContains(event.place)) {
       const polygon = Array.from(polygons[event.place]);

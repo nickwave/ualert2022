@@ -18,12 +18,14 @@ function syncSettingsValues() {
   orangePolygonLayer.setVisible(isAlertsActive);
   yellowPolygonLayer.setVisible(isAlertsActive);
   greyPolygonLayer.setVisible(isAlertsActive);
+  dayLongPolygonLayer.setVisible(isAlertsActive);
   explosionPolygonLayer.setVisible(isExplosionsActive);
   dangerPolygonLayer.setVisible(isDangersActive);
   redMarkerLayer.setVisible(isAlertsActive);
   orangeMarkerLayer.setVisible(isAlertsActive);
   yellowMarkerLayer.setVisible(isAlertsActive);
   greyMarkerLayer.setVisible(isAlertsActive);
+  dayLongMarkerLayer.setVisible(isAlertsActive);
   dangerMarkerLayer.setVisible(isDangersActive);
   explosionMarkerLayer.setVisible(isExplosionsActive);
 }
@@ -88,6 +90,7 @@ function toggleAlertsSwitch() {
   orangePolygonLayer.setVisible(isAlertsActive);
   yellowPolygonLayer.setVisible(isAlertsActive);
   greyPolygonLayer.setVisible(isAlertsActive);
+  dayLongPolygonLayer.setVisible(isAlertsActive);
   redMarkerLayer.setVisible(isAlertsActive);
   orangeMarkerLayer.setVisible(isAlertsActive);
   yellowMarkerLayer.setVisible(isAlertsActive);
@@ -129,8 +132,8 @@ function toggleExplosionsSwitch() {
 
 function toggleDayLongAlertsSwitch() {
   toggleIsDayLongAlertsActive(day_long_alerts_switch.checked);
-  dayLongAlertPolygonLayer.setVisible(isDayLongAlertsActive);
-  dayLongAlertMarkerLayer.setVisible(isDayLongAlertsActive);
+  dayLongPolygonLayer.setVisible(isDayLongAlertsActive);
+  dayLongMarkerLayer.setVisible(isDayLongAlertsActive);
   const elements = document.getElementsByClassName("grey_event");
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i];
