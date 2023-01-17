@@ -70,6 +70,7 @@ html, body {
 }
 .marker_info_item > span, .settings_item > span {
   margin-left: 1em;
+  width: 50%;
 }
 .event_item {
   display: flex;

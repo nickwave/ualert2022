@@ -127,6 +127,19 @@ function toggleExplosionsSwitch() {
   }
 }
 
+function toggleDayLongAlertsSwitch() {
+  toggleIsDayLongAlertsActive(day_long_alerts_switch.checked);
+  dayLongAlertPolygonLayer.setVisible(isDayLongAlertsActive);
+  dayLongAlertMarkerLayer.setVisible(isDayLongAlertsActive);
+  const elements = document.getElementsByClassName("grey_event");
+  for (let i = 0; i < elements.length; i++) {
+    const element = elements[i];
+    const classList = Array.from(element.classList).filter((x) => x != "hidden");
+    if (!isDayLongAlertsActive) classList.push("hidden");
+    element.setAttribute("class", classList.join(" "));
+  }
+}
+
 function buildPolygonLayer(color) {
   const polygonStyles = [
     new ol.style.Style({
@@ -244,12 +257,14 @@ const redPolygonLayer = buildPolygonLayer("rgba(241, 70, 80, 0.28)");
 const orangePolygonLayer = buildPolygonLayer("rgba(255, 150, 48, 0.28)");
 const yellowPolygonLayer = buildPolygonLayer("rgba(255, 222, 48, 0.28)");
 const greyPolygonLayer = buildPolygonLayer("rgba(168, 168, 168, 0.28)");
+const dayLongPolygonLayer = buildPolygonLayer("rgba(168, 168, 168, 0.28)");
 const dangerPolygonLayer = buildPolygonImageLayer("danger_background.png");
 const explosionPolygonLayer = buildPolygonImageLayer("explosion_background.png");
 const redMarkerLayer = buildMarkerLayer("marker_red.png");
 const orangeMarkerLayer = buildMarkerLayer("marker_orange.png");
 const yellowMarkerLayer = buildMarkerLayer("marker_yellow.png");
 const greyMarkerLayer = buildMarkerLayer("marker_grey.png");
+const dayLongMarkerLayer = buildMarkerLayer("marker_grey.png");
 const dangerMarkerLayer = buildMarkerLayer("danger.png");
 const explosionMarkerLayer = buildMarkerLayer("explosion.png");
 
@@ -265,12 +280,14 @@ const map = new ol.Map({
     orangePolygonLayer,
     yellowPolygonLayer,
     greyPolygonLayer,
+    dayLongPolygonLayer,
     dangerPolygonLayer,
     explosionPolygonLayer,
     redMarkerLayer,
     orangeMarkerLayer,
     yellowMarkerLayer,
     greyMarkerLayer,
+    dayLongMarkerLayer,
     dangerMarkerLayer,
     explosionMarkerLayer,
   ],

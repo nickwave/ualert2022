@@ -4,6 +4,7 @@ let isActiveDarkMode = false;
 let isAlertsActive = true;
 let isDangersActive = false;
 let isExplosionsActive = false;
+let IsDayLongAlertsActive = false;
 
 function toggleIsPanelToggled() {
   isPanelToggled = !isPanelToggled;
@@ -35,8 +36,13 @@ function toggleIsExplosionsActive(value) {
   localStorage.setItem("isExplosionsActive", isExplosionsActive);
 }
 
+function toggleIsDayLongAlertsActive(value) {
+  isDayLongAlertsActive = value;
+  localStorage.setItem("isDayLongAlertsActive", isDayLongAlertsActive);
+}
+
 function isActiveDarkModeUndefined() {
-	return localStorage.getItem("isActiveDarkMode") == null;
+  return localStorage.getItem("isActiveDarkMode") == null;
 }
 
 function initLocalRepository() {
@@ -51,14 +57,17 @@ function initLocalRepository() {
   isExplosionsActive = localStorage.getItem("isExplosionsActive") == undefined
     ? false
     : localStorage.getItem("isExplosionsActive") == "true";
+  isDayLongAlertsActive = localStorage.getItem("isDayLongAlertsActive") == undefined
+    ? false
+    : localStorage.getItem("isDayLongAlertsActive") == "true";
 
   isActiveDarkMode = localStorage.getItem("isActiveDarkMode");
   if (isActiveDarkMode == "true" || isActiveDarkMode == "false") {
-  	isActiveDarkMode = isActiveDarkMode == "true";
+    isActiveDarkMode = isActiveDarkMode == "true";
   } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-  	isActiveDarkMode = true;
+    isActiveDarkMode = true;
   } else {
-  	isActiveDarkMode = false;
+    isActiveDarkMode = false;
   }
 }
 

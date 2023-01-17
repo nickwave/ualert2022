@@ -95,16 +95,21 @@ function alertsHandler(event) {
   const orangeMarkerList = [];
   const yellowMarkerList = [];
   const greyMarkerList = [];
+  const dayLongMarkerList = [];
   const dangerMarkerList = [];
   const explosionMarkerList = [];
   const redFeatureList = [];
   const orangeFeatureList = [];
   const yellowFeatureList = [];
   const greyFeatureList = [];
+  const dayLongFeatureList = [];
   const dangerFeatureList = [];
   const explosionFeatureList = [];
 
   for (let i in events) {
+    const oneDay = 1000 * 60 * 60 * 24; // Milliseconds in one day
+    const isDayLongEvent = ((new Date - new Date(event.date)) / oneDay) > 1;
+
     const event = events[i];
     alertsComponents.push(buildAlertComponent(event));
     if (polygonsContains(event.place)) {
@@ -119,7 +124,11 @@ function alertsHandler(event) {
           case "red": redFeatureList.push(feature); break;
           case "orange": orangeFeatureList.push(feature); break;
           case "yellow": yellowFeatureList.push(feature); break;
-          case "grey": greyFeatureList.push(feature); break;
+          case "grey": {
+            if (isDayLongEvent) dayLongFeatureList.push(feature); 
+            else greyFeatureList.push(feature);
+            break;
+          }
         }
       } else if (event.event == "danger") {
         dangerFeatureList.push(feature);
@@ -136,7 +145,11 @@ function alertsHandler(event) {
           case "red": redMarkerList.push(marker); break;
           case "orange": orangeMarkerList.push(marker); break;
           case "yellow": yellowMarkerList.push(marker); break;
-          case "grey": greyMarkerList.push(marker); break;
+          case "grey": {
+            if (isDayLongEvent) dayLongMarkerList.push(marker); 
+            else greyMarkerList.push(marker);
+            break;
+          }
         }
       } else if (event.event == "danger") {
         dangerMarkerList.push(marker);
@@ -162,6 +175,7 @@ function alertsHandler(event) {
   orangePolygonLayer.getSource().clear();
   yellowPolygonLayer.getSource().clear();
   greyPolygonLayer.getSource().clear();
+  dayLongPolygonLayer.getSource().clear();
   dangerPolygonLayer.getSource().clear();
   explosionPolygonLayer.getSource().clear();
 
@@ -169,12 +183,14 @@ function alertsHandler(event) {
   orangeMarkerLayer.getSource().addFeatures(orangeMarkerList);
   yellowMarkerLayer.getSource().addFeatures(yellowMarkerList);
   greyMarkerLayer.getSource().addFeatures(greyMarkerList);
+  dayLongMarkerLayer.getSource().addFeatures(dayLongMarkerList);
   dangerMarkerLayer.getSource().addFeatures(dangerMarkerList);
   explosionMarkerLayer.getSource().addFeatures(explosionMarkerList);
   redPolygonLayer.getSource().addFeatures(redFeatureList);
   orangePolygonLayer.getSource().addFeatures(orangeFeatureList);
   yellowPolygonLayer.getSource().addFeatures(yellowFeatureList);
   greyPolygonLayer.getSource().addFeatures(greyFeatureList);
+  dayLongPolygonLayer.getSource().addFeatures(dayLongFeatureList);
   dangerPolygonLayer.getSource().addFeatures(dangerFeatureList);
   explosionPolygonLayer.getSource().addFeatures(explosionFeatureList);
 }
