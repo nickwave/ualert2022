@@ -90,7 +90,6 @@ function toggleAlertsSwitch() {
   orangePolygonLayer.setVisible(isAlertsActive);
   yellowPolygonLayer.setVisible(isAlertsActive);
   greyPolygonLayer.setVisible(isAlertsActive);
-  dayLongPolygonLayer.setVisible(isAlertsActive);
   redMarkerLayer.setVisible(isAlertsActive);
   orangeMarkerLayer.setVisible(isAlertsActive);
   yellowMarkerLayer.setVisible(isAlertsActive);
