@@ -230,7 +230,7 @@ function errorHandler(event) {
 }
 
 function initEventSource() {
-  eventSource = new EventSource("https://3bc16b24-5d97-4553-8289-2adeda3ae2e1.pub.instances.scw.cloud/data", {withCredentials: true});
+  eventSource = new EventSource("https://18c9165c-cd22-481c-b4f3-e7901aecb4c2.pub.instances.scw.cloud/data", {withCredentials: true});
   eventSource.addEventListener("alerts", alertsHandler);
   eventSource.addEventListener("status", statusHandler);
   eventSource.addEventListener("error", errorHandler);
