@@ -1,4 +1,4 @@
-const polygons = {};
+let polygons = new Map();
 const regions = {
   "Чернігівська область": ['Корюківський район', 'Прилуцький район', 'Новгород-Сіверський район', 'Чернігівська область', 'Ніжинський район', 'Чернігівський район'],
   "Львівська область": ['Львівська область', 'Яворівський район', 'Золочівський район', 'Львівський район', 'Дрогобицький район', 'Самбірський район', 'Стрийський район', 'Червоноградський район'],
@@ -30,42 +30,78 @@ const regions = {
 };
 
 function setPolygon(polygonName, coordinates) {
-  if (!(polygonName in polygons)) {
-    polygons[polygonName] = [];
+  if (!(polygons.has(polygonName))) {
+    polygons.set(polygonName, []);
   }
   const polygon = [];
   for (let j = 0; j < coordinates.length; j += 2) {
     polygon.push([coordinates[j], coordinates[j+1]]);
   }
-  polygons[polygonName].push(polygon);
+  polygons.get(polygonName).push(polygon);
 }
 
 async function loadGeojson() {
+  polygons.clear();
+
   const response = await fetch("geojson.hdf5");
-  const file = new hdf5.File(await response.arrayBuffer(), "geojson.hdf5");
-  setPolygon("Україна", file.get("geojson/Україна/0").value);
+  const geojson = new hdf5.File(await response.arrayBuffer(), "geojson.hdf5");
+
+  // const startTime = performance.now();
+
+  setPolygon("Україна", geojson.get("geojson/Україна/0").value);
   for (const regionName in regions) {
     for (const regionIndex in regions[regionName]) {
       const polygonName = regions[regionName][regionIndex];
-      try {
-        for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 20; i++) {
+        try {
           const datasetName = "geojson/" + regionName + "/" + polygonName + "/" + i;
-          setPolygon(polygonName, file.get(datasetName).value);
+          setPolygon(polygonName, geojson.get(datasetName).value);
+        } catch (exception) {
+          // console.log(exception);
+          break;
         }
-      } catch (exception) {
-        // console.log(exception);
-      } finally {
-        if (polygonName == "Київська область") {
-          polygons["Київська область"].push(polygons["Київ"][0]);
-        }
+      }
+      if (polygonName == "Київська область") {
+        polygons.get("Київська область").push(polygons.get("Київ")[0]);
       }
     }
   }
+  // const endTime = performance.now();
+  // console.log('TIME: ' + (endTime - startTime) + ' milliseconds');
 
   const polygonUaFeature = new ol.Feature({
-    geometry: new ol.geom.Polygon(polygons["Україна"]),
+    geometry: new ol.geom.Polygon(polygons.get("Україна"))
+      .transform("EPSG:4326", "EPSG:3857"),
+    name: "Україна",
   });
-  polygonUaFeature.getGeometry().transform("EPSG:4326", "EPSG:3857");
   polygonUaLayer.getSource().clear();
   polygonUaLayer.getSource().addFeatures([polygonUaFeature]);
+}
+
+function rebuildFeatures(zoom) {
+  const simplifyValue = getSimplifyValue(zoom);
+  const layers = [
+    polygonUaLayer,
+    redPolygonLayer,
+    orangePolygonLayer,
+    yellowPolygonLayer,
+    greyPolygonLayer,
+    dayLongPolygonLayer,
+    dangerPolygonLayer,
+    explosionPolygonLayer,
+  ];
+  for (let i = 0; i < layers.length; i++) {
+    const features = layers[i].getSource().getFeatures();
+    for (let j = 0; j < features.length; j++) {
+      features[j].setGeometry(
+        new ol.geom.Polygon(polygons.get(features[j].A.name))
+          .simplify(simplifyValue)
+          .transform("EPSG:4326", "EPSG:3857")
+      );
+    }
+  }
+}
+
+function getSimplifyValue(zoom) {
+  return 5.74009 * Math.exp(-0.906241 * zoom);
 }

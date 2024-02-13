@@ -1,79 +1,101 @@
-const defaultLonLat = [32.0, 49.0];
-const defaultZoom = 6.0;
 const filter1 = new ol.filter.Colorize('invert');
 const filter2 = new ol.filter.Colorize('customColorize');
 
-function syncPanel() {
+function syncPanels() {
   document.getElementById("panel").style.width =
-    isPanelToggled ? "400px" : "0px";
-}
+    appState.isPanelToggled ? "400px" : "0px";
 
-function syncSettingsPanel() {
   document.getElementById("settings").style.width =
-    isSettingsToggled ? "400px" : "0px";
+    appState.isSettingsToggled ? "400px" : "0px";
 }
 
-function syncSettingsValues() {
-  redPolygonLayer.setVisible(isAlertsActive);
-  orangePolygonLayer.setVisible(isAlertsActive);
-  yellowPolygonLayer.setVisible(isAlertsActive);
-  greyPolygonLayer.setVisible(isAlertsActive);
-  dayLongPolygonLayer.setVisible(isDayLongAlertsActive);
-  explosionPolygonLayer.setVisible(isExplosionsActive);
-  dangerPolygonLayer.setVisible(isDangersActive);
-  redMarkerLayer.setVisible(isAlertsActive);
-  orangeMarkerLayer.setVisible(isAlertsActive);
-  yellowMarkerLayer.setVisible(isAlertsActive);
-  greyMarkerLayer.setVisible(isAlertsActive);
-  dayLongMarkerLayer.setVisible(isDayLongAlertsActive);
-  dangerMarkerLayer.setVisible(isDangersActive);
-  explosionMarkerLayer.setVisible(isExplosionsActive);
+function syncEventsSettings() {
+  redPolygonLayer.setVisible(appState.isAlertsActive);
+  orangePolygonLayer.setVisible(appState.isAlertsActive);
+  yellowPolygonLayer.setVisible(appState.isAlertsActive);
+  greyPolygonLayer.setVisible(appState.isAlertsActive);
+  dayLongPolygonLayer.setVisible(appState.isDayLongAlertsActive);
+  explosionPolygonLayer.setVisible(appState.isExplosionsActive);
+  dangerPolygonLayer.setVisible(appState.isDangersActive);
+  redMarkerLayer.setVisible(appState.isAlertsActive);
+  orangeMarkerLayer.setVisible(appState.isAlertsActive);
+  yellowMarkerLayer.setVisible(appState.isAlertsActive);
+  greyMarkerLayer.setVisible(appState.isAlertsActive);
+  dayLongMarkerLayer.setVisible(appState.isDayLongAlertsActive);
+  dangerMarkerLayer.setVisible(appState.isDangersActive);
+  explosionMarkerLayer.setVisible(appState.isExplosionsActive);
 }
 
-function syncDarkMode() {
-  filter1.setActive(isActiveDarkMode);
-  filter2.setActive(isActiveDarkMode);
+function syncColorScheme() {
+  const isDarkModeActive = appState.colorScheme == "dark";
+
+  filter1.setActive(isDarkModeActive);
+  filter2.setActive(isDarkModeActive);
 
   document.getElementById("panel").style.backgroundColor =
-    isActiveDarkMode ? "rgb(26, 24, 44)" : "white";
+    isDarkModeActive ? "rgb(26, 24, 44)" : "white";
   document.getElementById("settings").style.backgroundColor =
-    isActiveDarkMode ? "rgb(26, 24, 44)" : "white";
-  document.getElementsByClassName("panel_block")[0].style.color =
-    isActiveDarkMode ? "whitesmoke" : "black";
-  document.getElementsByClassName("panel_block")[1].style.color =
-    isActiveDarkMode ? "whitesmoke" : "black";
+    isDarkModeActive ? "rgb(26, 24, 44)" : "white";
+
+  const panelBlockItems = document.getElementsByClassName("panel_block");
+  for (var i = 0; i < panelBlockItems.length; i++) {
+    panelBlockItems[i].style.color = isDarkModeActive ? "whitesmoke" : "black";
+  }
 
   const alertItems = document.getElementsByClassName("event_item");
   for (let i = 0; i < alertItems.length; i++) {
     const alertItem = alertItems[i];
     const alertItemClassList =
       Array.from(alertItem.classList).filter((x) => x != "dark_event_item");
-    if (isActiveDarkMode) alertItemClassList.push("dark_event_item");
+    if (isDarkModeActive) alertItemClassList.push("dark_event_item");
     alertItem.setAttribute("class", alertItemClassList.join(" "));
   }
 }
 
-function togglePanel() {
-  toggleIsPanelToggled();
-  if (isSettingsToggled) {
-    toggleIsSettingsToggled();
+function syncMapProvider() {
+  const layers = map.getAllLayers();
+  switch (appState.mapProvider) {
+    case "maptiler": {
+      const isDarkModeActive = appState.colorScheme == "dark";
+      layers[0].setVisible(false);
+      layers[1].setVisible(false);
+      layers[17].setVisible(!isDarkModeActive);
+      layers[18].setVisible(!isDarkModeActive);
+      layers[19].setVisible(isDarkModeActive);
+      layers[20].setVisible(isDarkModeActive);
+      break;
+    }
+    case "osm": {
+      layers[0].setVisible(true);
+      layers[1].setVisible(true);
+      layers[17].setVisible(false);
+      layers[18].setVisible(false);
+      layers[19].setVisible(false);
+      layers[20].setVisible(false);
+      break;
+    }
   }
-  syncPanel();
-  syncSettingsPanel();
+}
+
+function togglePanel() {
+  appState.setIsPanelToggled(!appState.isPanelToggled);
+  if (appState.isSettingsToggled) {
+    appState.setIsSettingsToggled(!appState.isSettingsToggled);
+  }
+  syncPanels();
 }
 
 function toggleSettings() {
-  toggleIsSettingsToggled();
-  if (isPanelToggled) {
-    toggleIsPanelToggled();
+  appState.setIsSettingsToggled(!appState.isSettingsToggled);
+  if (appState.isPanelToggled) {
+    appState.setIsPanelToggled(!appState.isPanelToggled);
   }
-  syncPanel();
-  syncSettingsPanel();
+  syncPanels();
 }
 
 function toggleDarkMode() {
-  toggleIsActiveDarkMode();
-  syncDarkMode();
+  appState.setColorScheme(appState.colorScheme == "bright" ? "dark" : "bright");
+  syncColorScheme();
 }
 
 function resetMapView() {
@@ -85,59 +107,59 @@ function resetMapView() {
 }
 
 function toggleAlertsSwitch() {
-  toggleIsAlertsActive(alerts_switch.checked);
-  redPolygonLayer.setVisible(isAlertsActive);
-  orangePolygonLayer.setVisible(isAlertsActive);
-  yellowPolygonLayer.setVisible(isAlertsActive);
-  greyPolygonLayer.setVisible(isAlertsActive);
-  redMarkerLayer.setVisible(isAlertsActive);
-  orangeMarkerLayer.setVisible(isAlertsActive);
-  yellowMarkerLayer.setVisible(isAlertsActive);
-  greyMarkerLayer.setVisible(isAlertsActive);
+  appState.setIsAlertsActive(document.getElementById("alerts_switch").checked);
+  redPolygonLayer.setVisible(appState.isAlertsActive);
+  orangePolygonLayer.setVisible(appState.isAlertsActive);
+  yellowPolygonLayer.setVisible(appState.isAlertsActive);
+  greyPolygonLayer.setVisible(appState.isAlertsActive);
+  redMarkerLayer.setVisible(appState.isAlertsActive);
+  orangeMarkerLayer.setVisible(appState.isAlertsActive);
+  yellowMarkerLayer.setVisible(appState.isAlertsActive);
+  greyMarkerLayer.setVisible(appState.isAlertsActive);
   const elements = document.getElementsByClassName("alert_event");
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i];
     const classList = Array.from(element.classList).filter((x) => x != "hidden");
-    if (!isAlertsActive) classList.push("hidden");
+    if (!appState.isAlertsActive) classList.push("hidden");
     element.setAttribute("class", classList.join(" "));
   }
 }
 
 function toggleDangersSwitch() {
-  toggleIsDangersActive(dangers_switch.checked);
-  dangerPolygonLayer.setVisible(isDangersActive);
-  dangerMarkerLayer.setVisible(isDangersActive);
+  appState.setIsDangersActive(document.getElementById("dangers_switch").checked);
+  dangerPolygonLayer.setVisible(appState.isDangersActive);
+  dangerMarkerLayer.setVisible(appState.isDangersActive);
   const elements = document.getElementsByClassName("danger_event");
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i];
     const classList = Array.from(element.classList).filter((x) => x != "hidden");
-    if (!isDangersActive) classList.push("hidden");
+    if (!appState.isDangersActive) classList.push("hidden");
     element.setAttribute("class", classList.join(" "));
   }
 }
 
 function toggleExplosionsSwitch() {
-  toggleIsExplosionsActive(explosions_switch.checked);
-  explosionPolygonLayer.setVisible(isExplosionsActive);
-  explosionMarkerLayer.setVisible(isExplosionsActive);
+  appState.setIsExplosionsActive(document.getElementById("explosions_switch").checked);
+  explosionPolygonLayer.setVisible(appState.isExplosionsActive);
+  explosionMarkerLayer.setVisible(appState.isExplosionsActive);
   const elements = document.getElementsByClassName("explosion_event");
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i];
     const classList = Array.from(element.classList).filter((x) => x != "hidden");
-    if (!isExplosionsActive) classList.push("hidden");
+    if (!appState.isExplosionsActive) classList.push("hidden");
     element.setAttribute("class", classList.join(" "));
   }
 }
 
 function toggleDayLongAlertsSwitch() {
-  toggleIsDayLongAlertsActive(day_long_alerts_switch.checked);
-  dayLongPolygonLayer.setVisible(isDayLongAlertsActive);
-  dayLongMarkerLayer.setVisible(isDayLongAlertsActive);
+  appState.setIsDayLongAlertsActive(document.getElementById("day_long_alerts_switch").checked);
+  dayLongPolygonLayer.setVisible(appState.isDayLongAlertsActive);
+  dayLongMarkerLayer.setVisible(appState.isDayLongAlertsActive);
   const elements = document.getElementsByClassName("grey_event");
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i];
     const classList = Array.from(element.classList).filter((x) => x != "hidden");
-    if (!isDayLongAlertsActive) classList.push("hidden");
+    if (!appState.isDayLongAlertsActive) classList.push("hidden");
     element.setAttribute("class", classList.join(" "));
   }
 }
@@ -152,21 +174,24 @@ function buildPolygonLayer(color) {
       fill: new ol.style.Fill({color: color}),
     }),
   ];
-  const polygonLayer = new ol.layer.Vector({
+  return new ol.layer.Vector({
+    zIndex: 1,
     source: new ol.source.Vector(),
     style: polygonStyles,
   });
-  return polygonLayer;
 }
 
-function buildPolygonImageLayer(assetName) {
-  const fill = new ol.style.Fill();
-  const stroke = new ol.style.Stroke();
+function buildPolygonImageLayer(assetName, color) {
   const image = new Image();
   image.src = assetName;
-  const polygonLayer = new ol.layer.Vector({
+  const fill = new ol.style.Fill({color: color});
+  const stroke = new ol.style.Stroke({
+    color: "rgba(168, 139, 167, 0.5)",
+    width: 1.2,
+   });
+  return new ol.layer.Vector({
+    zIndex: 1,
     source: new ol.source.Vector(),
-    opacity: 0.28,
     style: [
       new ol.style.Style({
         renderer: (pixelCoordinates, state) => {
@@ -194,11 +219,11 @@ function buildPolygonImageLayer(assetName) {
       }),
     ],
   });
-  return polygonLayer;
 }
 
 function buildMarkerLayer(assetName) {
   return new ol.layer.Vector({
+    zIndex: 1,
     source: new ol.source.Vector(),
     style: new ol.style.Style({
       image: new ol.style.Icon({anchor: [0.5, 1.0], src: assetName}),
@@ -206,44 +231,88 @@ function buildMarkerLayer(assetName) {
   });
 }
 
-syncPanel();
-syncSettingsPanel();
-syncDarkMode();
-window.matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", event => {
-    if (isActiveDarkModeUndefined()) {
-      isActiveDarkMode = event.matches;
-      syncDarkMode();
-    }
-  });
+
+function onChangeColorScheme() {
+  appState.setColorScheme(document.getElementById("color_scheme").value);
+  syncColorScheme();
+  syncMapProvider();
+}
+
+function onChangeMapProvider() {
+  const bottomInfo =
+    document.getElementsByClassName("ol-attribution")[0].childNodes[1];
+  let statusText = null;
+  if (bottomInfo.childNodes.length > 1) {
+    statusText = bottomInfo.childNodes[1].innerText;
+  }
+
+  appState.setMapProvider(document.getElementById("map_provider").value);
+  syncColorScheme();
+  syncMapProvider();
+
+
+  if (statusText != null) {
+    setTimeout(function() {
+      const placeSpan = document.createElement("li");
+      placeSpan.innerText = statusText;
+      bottomInfo.appendChild(placeSpan);
+      bottomInfo.childNodes[0].style = "display: list-item";
+
+      const newAttribution =
+        document.getElementsByClassName("ol-attribution")[0];
+      if (newAttribution.classList.contains("ol-collapsed")) {
+        newAttribution.childNodes[0].click();
+      }
+    }, 100);
+  }
+}
+
+function debounce(f, t) {
+  let timeout;
+  return (x) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => f(x), t);
+  }
+}
+
+const onZoomChange = debounce(function (zoomValue) {
+  appState.setZoom(zoomValue);
+  rebuildFeatures(zoomValue);
+}, 500);
+
+const onLonLatChange = debounce(function (lonLatValue) {
+  appState.setLonLat(lonLatValue);
+}, 500);
 
 const view = new ol.View({
-  center: ol.proj.fromLonLat(defaultLonLat),
-  zoom: defaultZoom,
+  center: ol.proj.fromLonLat(appState.lonLat),
+  zoom: appState.zoom,
+});
+view.on("change:resolution", function (event) {
+  const zoom = view.getZoom();
+  onZoomChange(zoom);
+});
+view.on("change:center", function (event) {
+  const lonLat = ol.proj.transform(view.getCenter(), 'EPSG:3857', 'EPSG:4326'); 
+  onLonLatChange(lonLat);
 });
 
-const mainLayer = new ol.layer.Tile({source: new ol.source.OSM()});
+const mainLayer = new ol.layer.Tile({zIndex: 1, source: new ol.source.OSM()});
 mainLayer.addFilter(filter1);
 mainLayer.addFilter(filter2);
 
 const backgroundLayer = new ol.layer.Tile({
+  zIndex: 1,
   source: new ol.source.DataTile({
     loader: (z, x, y) => new Uint8Array(data.buffer),
   }),
 });
-// const backgroundLayer = new ol.layer.Vector({
-//   source: new ol.source.Vector({
-//     features: [new ol.Feature({
-//       geometry: new ol.geom.Polygon(
-//         [[[-180, 90], [180, 90], [180, -90], [-180, -90]]],
-//       ),
-//     })],
-//   }),
-// });
+
 backgroundLayer.addFilter(filter2);
 backgroundLayer.addFilter(filter1);
 
 const polygonUaLayer = new ol.layer.Vector({
+  zIndex: 1,
   source: new ol.source.Vector(),
   style: [
     new ol.style.Style({
@@ -260,8 +329,8 @@ const orangePolygonLayer = buildPolygonLayer("rgba(255, 150, 48, 0.28)");
 const yellowPolygonLayer = buildPolygonLayer("rgba(255, 222, 48, 0.28)");
 const greyPolygonLayer = buildPolygonLayer("rgba(168, 168, 168, 0.28)");
 const dayLongPolygonLayer = buildPolygonLayer("rgba(168, 168, 168, 0.28)");
-const dangerPolygonLayer = buildPolygonImageLayer("danger_background.png");
-const explosionPolygonLayer = buildPolygonImageLayer("explosion_background.png");
+const dangerPolygonLayer = buildPolygonImageLayer("danger_background.png", "rgba(255, 212, 42, 0.05)");
+const explosionPolygonLayer = buildPolygonImageLayer("explosion_background.png", "rgba(255, 42, 50, 0.05)");
 const redMarkerLayer = buildMarkerLayer("marker_red.png");
 const orangeMarkerLayer = buildMarkerLayer("marker_orange.png");
 const yellowMarkerLayer = buildMarkerLayer("marker_yellow.png");
@@ -269,8 +338,6 @@ const greyMarkerLayer = buildMarkerLayer("marker_grey.png");
 const dayLongMarkerLayer = buildMarkerLayer("marker_grey.png");
 const dangerMarkerLayer = buildMarkerLayer("danger.png");
 const explosionMarkerLayer = buildMarkerLayer("explosion.png");
-
-syncSettingsValues();
 
 const map = new ol.Map({
   target: "map",
@@ -295,3 +362,50 @@ const map = new ol.Map({
   ],
   view: view,
 });
+
+
+function setSettingsValuesFromAppState() {
+  document.getElementById("color_scheme").value = appState.colorScheme;
+  document.getElementById("map_provider").value = appState.mapProvider;
+
+  document.getElementById("alerts_switch").checked = appState.isAlertsActive;
+  document.getElementById("dangers_switch").checked = appState.isDangersActive;
+  document.getElementById("explosions_switch").checked = appState.isExplosionsActive;
+  document.getElementById("day_long_alerts_switch").checked = appState.isDayLongAlertsActive;
+
+  syncPanels();
+  syncEventsSettings();
+  syncColorScheme();
+  window.matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", function(event) {
+      appState.setColorScheme(event.matches ? "dark" : "bright");
+      document.getElementById("color_scheme").value = appState.colorScheme;
+      syncColorScheme();
+      syncMapProvider();
+    });
+
+  view.animate({
+    center: ol.proj.fromLonLat(appState.lonLat),
+    duration: 500,
+    zoom: appState.zoom,
+  });
+}
+
+async function initMapLayers() {
+  await olms.apply(map, atob("aHR0cHM6Ly9hcGkubWFwdGlsZXIuY29tL21hcHMvMjU3MmQzNTEtYTJkMy00NDEzLTgxNzItMzQ0M2ExMzhhNDYzL3N0eWxlLmpzb24/a2V5PXNMZWtRZXltTkNUZURkbTFta1A0")).then(async function (_map) {
+    await olms.apply(map, atob("aHR0cHM6Ly9hcGkubWFwdGlsZXIuY29tL21hcHMvMjNmYzc1OWItZmYwYy00ZTc4LWIyNGEtYzYwYWFkNWRmMTg3L3N0eWxlLmpzb24/a2V5PXNMZWtRZXltTkNUZURkbTFta1A0")).then(function (__map) {
+      const layers = map.getAllLayers();
+      for (var i = layers.length - 1; i >= layers.length - 4; i--) {
+        layers[i].setVisible(false);
+      }
+      syncMapProvider();
+
+      setTimeout(function() {
+        const bottomInfo = document.getElementsByClassName("ol-attribution")[0];
+        if (bottomInfo.classList.contains("ol-collapsed")) {
+          bottomInfo.childNodes[0].click();
+        }
+      }, 100);
+    });
+  });
+}

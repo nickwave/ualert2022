@@ -5,21 +5,23 @@ function buildAlertComponent(event, isDayLongEvent) {
     event.color + "_event",
     event.event + "_event",
   ];
-  if (isActiveDarkMode) alertComponentClassList.push("dark_event_item");
+  if (appState.colorScheme == "dark") {
+    alertComponentClassList.push("dark_event_item");
+  }
   switch(event.event) {
     case "alert": {
-      if (!isAlertsActive ||
-          (event.color == "grey" && isDayLongEvent && !isDayLongAlertsActive)
+      if (!appState.isAlertsActive ||
+          (event.color == "grey" && isDayLongEvent && !appState.isDayLongAlertsActive)
       ) {
         alertComponentClassList.push("hidden");
       }
       break;
     }
     case "danger": {
-      if(!isDangersActive) alertComponentClassList.push("hidden"); break;
+      if(!appState.isDangersActive) alertComponentClassList.push("hidden"); break;
     }
     case "explosion": {
-      if(!isExplosionsActive) alertComponentClassList.push("hidden"); break;
+      if(!appState.isExplosionsActive) alertComponentClassList.push("hidden"); break;
     }
   }
   alertComponent.setAttribute("class", alertComponentClassList.join(" "));
@@ -72,7 +74,8 @@ function processHolePolygons(polygonName, polygon, events) {
         if (event.event == "alert" &&
             regions[regionName].includes(event.place) &&
             regionName != event.place) {
-          const childPolygon = polygons[event.place];
+          // console.log(event.place);
+          const childPolygon = polygons.get(event.place);
           for (var j = 0; j < childPolygon.length; j++) {
             polygon.push(childPolygon[j]);
           }
@@ -111,20 +114,23 @@ function alertsHandler(event) {
   const dangerFeatureList = [];
   const explosionFeatureList = [];
 
+  const simplifyValue = getSimplifyValue(view.getZoom());
+
   for (let i in events) {
     const event = events[i];
     const oneDay = 1000 * 60 * 60 * 24; // Milliseconds in one day
-
     const isDayLongEvent = ((new Date - new Date(event.date)) / oneDay) > 1;
 
     alertsComponents.push(buildAlertComponent(event, isDayLongEvent));
     if (polygonsContains(event.place)) {
-      const polygon = Array.from(polygons[event.place]);
+      const polygon = Array.from(polygons.get(event.place));
       processHolePolygons(event.place, polygon, events);
       const feature = new ol.Feature({
         geometry: new ol.geom.Polygon(polygon)
+          .simplify(simplifyValue)
+          .transform("EPSG:4326", "EPSG:3857"),
+        name: event.place,
       });
-      feature.getGeometry().transform("EPSG:4326", "EPSG:3857");
       if (event.event == "alert") {
         switch (event.color) {
           case "red": redFeatureList.push(feature); break;
@@ -215,6 +221,9 @@ function changeStatusText(text) {
 }
 
 function statusHandler(event) {
+  if (document.getElementById("preloader").style.display == "flex") {
+    document.getElementById("preloader").style.display = "none";
+  }
   const date = new Date(event.data);
   const datetime = date.getFullYear()
     + ((date.getMonth() + 1) < 10 ? "-0" : "-") + (date.getMonth() + 1)
@@ -224,22 +233,29 @@ function statusHandler(event) {
 }
 
 function errorHandler(event) {
+  document.getElementById("preloader").style.display = "flex";
   changeStatusText("Connection is not available");
   eventSource.close();
-  window.setTimeout(initEventSource, 1000*5);
+  window.setTimeout(initEventSource, 1000 * 5);
+}
+
+function getApiUrl() {
+  return atob("aHR0cHM6Ly8xOGM5MTY1Yy1jZDIyLTQ4MWMtYjRmMy1lNzkwMWFlY2I0YzIucHViLmluc3RhbmNlcy5zY3cuY2xvdWQvZGF0YQ==");
 }
 
 function initEventSource() {
-  eventSource = new EventSource("https://3bc16b24-5d97-4553-8289-2adeda3ae2e1.pub.instances.scw.cloud/data", {withCredentials: true});
+  document.getElementById("preloader").style.display = "flex";
+  eventSource = new EventSource(getApiUrl(), {withCredentials: true});
   eventSource.addEventListener("alerts", alertsHandler);
   eventSource.addEventListener("status", statusHandler);
   eventSource.addEventListener("error", errorHandler);
 }
 
+let showPreloader = false;
 let eventSource = null;
 
-loadGeojson().then(initEventSource);
-
-window.addEventListener("beforeunload", () => {
-  if (eventSource != null) eventSource.close();
+window.addEventListener("beforeunload", function ()  {
+  if (eventSource != null) {
+    eventSource.close();
+  }
 });
